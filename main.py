@@ -279,7 +279,7 @@ class CompetitorAgent:
         """Generate the final report"""
         
         if not announcements:
-            return """# PEX Competitor Research Report
+            return f"""# PEX Competitor Research Report
             
 ## Summary
 No significant announcements found since the last report.
