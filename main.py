@@ -210,13 +210,13 @@ class CompetitorAgent:
         - Minor personnel changes (non-C-suite)
 
         Respond in this exact JSON format:
-        {
+        {{
             "importance_score": 0.0,
             "category": "Category",
             "summary": "Summary text",
             "implications": "Business implications text",
             "should_include": true
-        }
+        }}
         """
 
         try:
