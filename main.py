@@ -55,17 +55,30 @@ class CompetitorAgent:
         os.makedirs(self.reports_dir, exist_ok=True)
 
     def get_last_run_timestamp(self) -> datetime:
-        """Get the timestamp of the last run"""
+        """Get the timestamp of the last run, with max 30-day lookback"""
         try:
+            max_lookback = datetime.now() - timedelta(days=30)
+            
             if os.path.exists(self.timestamp_file):
                 with open(self.timestamp_file, 'r') as f:
                     timestamp_str = f.read().strip()
-                    return datetime.fromisoformat(timestamp_str)
+                    last_run = datetime.fromisoformat(timestamp_str)
+                    
+                    # Ensure we don't look back more than 30 days
+                    if last_run < max_lookback:
+                        logger.info(f"Last run was {last_run}, but limiting lookback to 30 days: {max_lookback}")
+                        return max_lookback
+                    else:
+                        return last_run
             else:
-                # If no timestamp file, look back 7 days
-                return datetime.now() - timedelta(days=7)
+                # If no timestamp file, look back 7 days (safe default)
+                default_lookback = datetime.now() - timedelta(days=7)
+                logger.info(f"No timestamp file found, using default 7-day lookback: {default_lookback}")
+                return default_lookback
+                
         except Exception as e:
             logger.error(f"Error reading timestamp: {e}")
+            # Fall back to 7 days on error
             return datetime.now() - timedelta(days=7)
 
     def update_timestamp(self):
@@ -208,7 +221,7 @@ class CompetitorAgent:
 
         try:
             response = self.openai_client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.3
             )
