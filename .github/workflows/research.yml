@@ -1,0 +1,48 @@
+name: PEX Competitor Research Agent
+
+on:
+  # Run every Sunday at 3 AM UTC
+  schedule:
+    - cron: '0 3 * * 0'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run research agent
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        python main.py
+        
+    - name: Commit and push if report generated
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add reports/
+        git add last_run_timestamp.txt
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Add competitor research report - $(date +'%Y-%m-%d')"
+          git push
+        fi
